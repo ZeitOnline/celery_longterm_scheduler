@@ -42,6 +42,19 @@ implementation, especially since we want to use redis as storage (since we're
 already using that as broker and result backend).
 
 
+Implementation
+==============
+
+Redis schema
+------------
+
+celery_longterm_scheduler assumes that it talks to a dedicated redis database.
+It creates an entry per scheduled job using ``SET jobid job-configuration``
+(job-configuration is serialized with JSON) and uses a single sorted set named
+``schedule`` that contains the jobids scored by the unix timestamp (UTC) when
+they are due.
+
+
 Run tests
 =========
 
