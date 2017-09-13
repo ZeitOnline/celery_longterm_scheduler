@@ -1,0 +1,26 @@
+# celery
+amqp == 2.1.4
+anyjson == 0.3.3
+billiard == 3.5.0.2
+celery == 4.0.2
+kombu == 4.0.2
+redis == 2.10.5
+vine == 1.1.3
+SQLAlchemy == 0.9.8
+tblib == 1.3.0
+
+# setuptools
+appdirs == 1.4.3
+packaging == 16.8
+pyparsing == 2.2.0
+setuptools == 34.3.2
+six == 1.10.0
+
+# Testing
+execnet == 1.1
+mock == 1.0.1
+pep8 == 1.6.2
+py == 1.4.31
+pytest == 3.0.2
+pytest-cache == 1.0
+pytest-pep8 == 1.0.6

@@ -1,0 +1,7 @@
+celery_longterm_scheduler changes
+=================================
+
+1.0.0 (unreleased)
+-------------------
+
+- Initial release
