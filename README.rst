@@ -16,10 +16,15 @@ Usage
   ``MYCELERY = celery.Celery(task_cls=celery_longterm_scheduler.Task)``
 * Set up a cronjob to run ``celery longterm_scheduler`` (e.g. every 5 minutes)
 * Now you can schedule your tasks by calling
-  ``mytask.apply_async(args, kwargs, eta=datetime)`` as normal.
+  ``mytask.apply_async(args, kwargs, eta=datetime)`` as normal. This returns
+  a normal ``AsyncResult`` object, but only reading the ``.id`` is supported;
+  any other methods or properties may fail explictly or implicitly.
 * You can completely delete a scheduled job by calling
-  ``celery_longterm_scheduler.revoke('mytaskid')`` (we cannot hook into the
-  celery built-in ``AsyncResult.revoke()``, unfortunately).
+  ``celery_longterm_scheduler.get_scheduler(MYCELERY).revoke('mytaskid')``
+  (we cannot hook into the celery built-in ``AsyncResult.revoke()``,
+  unfortunately). ``revoke()`` returns True on success and False if the given
+  task cannot be found in the storage backend (e.g. because it has already come
+  due and been executed).
 
 Instead of sending a normal job to the celery broker (with added timing
 information), this creates a job entry in the scheduler storage backend. The
