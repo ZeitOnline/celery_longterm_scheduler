@@ -39,6 +39,20 @@ class MemoryBackend(object):
                 yield (id, self.get(id))
 
 
+# Could be made extensible via entrypoints, like in celery.app.backends.
+BACKENDS = {
+    'memory': MemoryBackend,
+}
+
+
+def by_url(url):
+    if '://' not in url:
+        raise ValueError(
+            'longterm_scheduler_backend must be an URL, got %r' % url)
+    scheme = url.split('://')[0]
+    return BACKENDS[scheme](url)
+
+
 class PickleFallbackJSONEncoder(json.JSONEncoder):
 
     PICKLE_MARKER = '__python_pickle__'
