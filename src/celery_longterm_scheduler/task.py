@@ -42,7 +42,12 @@ class Task(celery.Task):
         # Store parameters apply_async() passes to app.send_task() in addition
         # to its own **kw.
         kw['task_type'] = self
-        kw['result_cls'] = self.AsyncResult
+        # We don't set result_cls, since serializing instancemethods is a pain
+        # and the additional settings of self.AsyncResult compared to
+        # app.AsyncResult don't make a difference _inside_ send_task, so we
+        # don't actually need it. And for the return value of apply_async we
+        # call it ourselves anyway, see below.
+        # kw['result_cls'] = self.AsyncResult
 
         # We use the celery task_id also for our scheduler storage; this is
         # mostly for integration purposes, e.g. so that other Task subclasses

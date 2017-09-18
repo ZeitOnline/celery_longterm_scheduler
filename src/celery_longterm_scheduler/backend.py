@@ -12,11 +12,11 @@ class MemoryBackend(object):
     def set(self, timestamp, task_id, args, kw):
         if timestamp.tzinfo is None:
             raise ValueError('Timezone required, got %s', timestamp)
-        self.by_id[task_id] = json.dumps([args, kw])
+        self.by_id[task_id] = serialize([args, kw])
         self.by_time[timestamp].append(task_id)
 
     def get(self, task_id):
-        args, kw = json.loads(self.by_id[task_id])
+        args, kw = deserialize(self.by_id[task_id])
         if isinstance(kw['args'], list):
             kw['args'] = tuple(kw['args'])
         return (tuple(args), kw)
@@ -37,3 +37,30 @@ class MemoryBackend(object):
                 break
             for id in self.by_time[ts]:
                 yield (id, self.get(id))
+
+
+class PickleFallbackJSONEncoder(json.JSONEncoder):
+
+    PICKLE_MARKER = '__python_pickle__'
+
+    def default(self, o):
+        raw = pickle.dumps(o)
+        return self.PICKLE_MARKER + raw
+
+    @classmethod
+    def decode_dict(cls, o):
+        for key, value in o.items():
+            if isinstance(value, basestring) and value.startswith(
+                    cls.PICKLE_MARKER):
+                raw = value.replace(cls.PICKLE_MARKER, '', 1)
+                o[key] = pickle.loads(raw)
+        return o
+
+
+def serialize(obj):
+    return json.dumps(obj, cls=PickleFallbackJSONEncoder)
+
+
+def deserialize(string):
+    return json.loads(
+        string, object_hook=PickleFallbackJSONEncoder.decode_dict)
