@@ -17,7 +17,7 @@ class MemoryBackend(object):
 
     def get(self, task_id):
         args, kw = deserialize(self.by_id[task_id])
-        if isinstance(kw['args'], list):
+        if isinstance(kw.get('args'), list):
             kw['args'] = tuple(kw['args'])
         return (tuple(args), kw)
 

@@ -9,7 +9,7 @@ ANYTIME = datetime(2017, 1, 20, tzinfo=pytz.UTC)
 
 
 @pytest.fixture(params=['memory://'])
-def backend(request, redis_server):
+def backend(request):
     url = request.param
     return celery_longterm_scheduler.backend.by_url(url)
 
