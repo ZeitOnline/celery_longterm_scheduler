@@ -20,6 +20,7 @@ setup(
     ],
     extras_require={'test': [
         'mock',
+        'pytz',
     ]},
     entry_points={
         'celery.commands': [
