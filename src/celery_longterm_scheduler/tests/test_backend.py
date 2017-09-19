@@ -33,6 +33,15 @@ def test_get_nonexistent_task_id_raises_keyerror(backend):
         backend.get('nonexistent')
 
 
+def test_positional_args_and_the_kw_item_called_args_use_type_tuple(backend):
+    # Even though we use JSON for serialization, which uses lists instead of
+    # tuples, the Python convention is that positional arguments are a tuple.
+    backend.set(ANYTIME, 'myid', ('arg',), {'args': ('celery-kw-arg',)})
+    task = backend.get('myid')
+    assert isinstance(task[0], tuple)
+    assert isinstance(task[1]['args'], tuple)
+
+
 def test_delete_task_can_not_be_retrieved_with_get(backend):
     backend.set(ANYTIME, 'one', ('arg1',), {'kw1': None})
     backend.set(ANYTIME, 'two', ('arg2',), {'kw2': None})
