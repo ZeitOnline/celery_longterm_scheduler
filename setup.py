@@ -24,7 +24,7 @@ setup(
     ]},
     entry_points={
         'celery.commands': [
-            'longterm_scheduler = celery_longterm_scheduler.scheduler:main',
+            'longterm_scheduler = celery_longterm_scheduler.scheduler:Command',
         ]
     }
 )
