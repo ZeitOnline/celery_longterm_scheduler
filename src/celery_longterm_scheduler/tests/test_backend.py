@@ -1,11 +1,11 @@
 """Contract test that every scheduler storage backend must comply with."""
-from datetime import datetime
 import celery_longterm_scheduler.backend
+import datetime
+import pendulum
 import pytest
-import pytz
 
 
-ANYTIME = datetime(2017, 1, 20, tzinfo=pytz.UTC)
+ANYTIME = pendulum.create(2017, 1, 20)
 
 
 @pytest.fixture(params=['memory://'])
@@ -25,7 +25,7 @@ def test_task_passed_to_set_can_be_retrieved_with_get(backend):
 
 def test_set_requires_timezone_aware_datetime(backend):
     with pytest.raises(ValueError):
-        backend.set(datetime.now(), 'myid', (), {})
+        backend.set(datetime.datetime.now(), 'myid', (), {})
 
 
 def test_get_nonexistent_task_id_raises_keyerror(backend):
@@ -52,11 +52,14 @@ def test_delete_task_can_not_be_retrieved_with_get(backend):
 
 
 def test_get_older_than_returns_timestamps_smaller_or_equal(backend):
-    backend.set(datetime(2017, 1, 1, 9, tzinfo=pytz.UTC), '1', (1,), {'1': 1})
-    backend.set(datetime(2017, 1, 1, 10, tzinfo=pytz.UTC), '2', (2,), {'2': 2})
-    backend.set(datetime(2017, 1, 1, 11, tzinfo=pytz.UTC), '3', (3,), {'3': 3})
+    backend.set(
+        pendulum.create(2017, 1, 1, 9), '1', (1,), {'1': 1})
+    backend.set(
+        pendulum.create(2017, 1, 1, 10), '2', (2,), {'2': 2})
+    backend.set(
+        pendulum.create(2017, 1, 1, 11), '3', (3,), {'3': 3})
     items = list(
-        backend.get_older_than(datetime(2017, 1, 1, 10, tzinfo=pytz.UTC)))
+        backend.get_older_than(pendulum.create(2017, 1, 1, 10)))
     assert len(items) == 2
     assert items[0][0] == '1'
     assert items[0][1] == ((1,), {'1': 1})

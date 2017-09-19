@@ -15,12 +15,12 @@ setup(
     license='BSD',
     install_requires=[
         'celery',
+        'pendulum',
         'redis',
         'setuptools',
     ],
     extras_require={'test': [
         'mock',
-        'pytz',
     ]},
     entry_points={
         'celery.commands': [

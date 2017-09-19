@@ -1,8 +1,7 @@
 from celery_longterm_scheduler import get_scheduler
 from celery_longterm_scheduler.conftest import CELERY
-from datetime import datetime
 import mock
-import pytz
+import pendulum
 
 
 @CELERY.task
@@ -38,7 +37,7 @@ def test_should_store_all_arguments_needed_for_send_task(celery_app):
     calls = []
 
     with mock.patch.object(CELERY, 'send_task', new=record_task):
-        result = echo.apply_async(('foo',), eta=datetime.now(pytz.UTC))
+        result = echo.apply_async(('foo',), eta=pendulum.now())
         task = get_scheduler(CELERY).backend.get(result.id)
         args = task[0]
         kw = task[1]
