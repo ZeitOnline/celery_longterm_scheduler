@@ -1,5 +1,6 @@
 import collections
 import json
+import pendulum
 import pickle
 
 
@@ -13,7 +14,7 @@ class MemoryBackend(object):
         if timestamp.tzinfo is None:
             raise ValueError('Timezone required, got %s', timestamp)
         self.by_id[task_id] = serialize([args, kw])
-        self.by_time[timestamp].append(task_id)
+        self.by_time[serialize_timestamp(timestamp)].append(task_id)
 
     def get(self, task_id):
         args, kw = deserialize(self.by_id[task_id])
@@ -32,11 +33,17 @@ class MemoryBackend(object):
             del self.by_time[ts]
 
     def get_older_than(self, timestamp):
+        timestamp = serialize_timestamp(timestamp)
         for ts in sorted(self.by_time.keys()):
             if ts > timestamp:
                 break
             for id in self.by_time[ts]:
                 yield (id, self.get(id))
+
+
+def serialize_timestamp(timestamp):
+    """Converts a datetime into seconds since the epoch."""
+    return int(pendulum.instance(timestamp).timestamp())
 
 
 # Could be made extensible via entrypoints, like in celery.app.backends.

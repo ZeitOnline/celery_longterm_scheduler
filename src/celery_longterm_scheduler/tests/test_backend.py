@@ -1,6 +1,6 @@
 """Contract test that every scheduler storage backend must comply with."""
+from datetime import datetime
 import celery_longterm_scheduler.backend
-import datetime
 import pendulum
 import pytest
 
@@ -25,7 +25,15 @@ def test_task_passed_to_set_can_be_retrieved_with_get(backend):
 
 def test_set_requires_timezone_aware_datetime(backend):
     with pytest.raises(ValueError):
-        backend.set(datetime.datetime.now(), 'myid', (), {})
+        backend.set(datetime.now(), 'myid', (), {})
+
+
+def test_set_works_with_datetime(backend):
+    due = datetime.now(pendulum.timezone('UTC'))
+    backend.set(due, 'myid', (), {})
+    tasks = list(backend.get_older_than(due))
+    assert len(tasks) == 1
+    assert tasks[0][0] == 'myid'
 
 
 def test_get_nonexistent_task_id_raises_keyerror(backend):
