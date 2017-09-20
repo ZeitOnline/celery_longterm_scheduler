@@ -14,7 +14,7 @@ def record(arg):
     record_calls.append(arg)
 
 
-def test_execute_pending_runs_scheduled_tasks(celery_app):
+def test_execute_pending_runs_scheduled_tasks(celery_worker):
     record_calls[:] == []
     due = ANYTIME
     record.apply_async(('foo',), eta=due)

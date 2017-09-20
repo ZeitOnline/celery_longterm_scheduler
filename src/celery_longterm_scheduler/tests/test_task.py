@@ -9,7 +9,7 @@ def echo(arg):
     return arg
 
 
-def test_should_store_all_arguments_needed_for_send_task(celery_app):
+def test_should_store_all_arguments_needed_for_send_task(celery_worker):
     # Cannot do this with a Mock, since they (technically correctly)
     # differentiate recording calls between args and kw, so a call
     # `send_task(1, 2,  3)` is not considered equal to

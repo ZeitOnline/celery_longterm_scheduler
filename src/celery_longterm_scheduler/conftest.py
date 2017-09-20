@@ -10,7 +10,7 @@ CELERY = celery.Celery(task_cls=celery_longterm_scheduler.Task)
 
 
 @pytest.fixture(scope='session')
-def celery_app(request):
+def celery_worker(request):
     CELERY.conf.update(celery.contrib.testing.app.DEFAULT_TEST_CONFIG)
     CELERY.conf['longterm_scheduler_backend'] = 'memory://'
     worker = celery.contrib.testing.worker.start_worker(CELERY)
