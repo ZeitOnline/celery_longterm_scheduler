@@ -8,6 +8,8 @@ setup(
     author_email='zon-backend@zeit.de',
     url='http://www.zeit.de/',
     description="Schedules celery tasks to run in the potentially far future",
+    long_description='\n\n'.join(
+        open(x).read() for x in ['README.rst', 'CHANGES.txt']),
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
