@@ -31,3 +31,5 @@ pytest == 3.0.2
 pytest-cache == 1.0
 pytest-catchlog == 1.2.2
 pytest-pep8 == 1.0.6
+testing.common.database == 2.0.1
+testing.redis == 1.1.1

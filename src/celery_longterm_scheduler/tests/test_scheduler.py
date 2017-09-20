@@ -52,7 +52,7 @@ def test_revoke_deletes_from_storage():
     pending = list(scheduler.backend.get_older_than(due))
     assert pending
 
-    scheduler.revoke(id)
+    assert scheduler.revoke(id)
     pending = list(scheduler.backend.get_older_than(due))
     assert not pending
 

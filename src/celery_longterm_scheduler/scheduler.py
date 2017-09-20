@@ -15,7 +15,7 @@ class Scheduler(object):
         self.app = app
         if self.CONF_KEY not in app.conf:
             app.conf[self.CONF_KEY] = backend.by_url(
-                app.conf['longterm_scheduler_backend'])
+                app.conf['longterm_scheduler_backend'], app)
         self.backend = app.conf[self.CONF_KEY]
 
     @classmethod

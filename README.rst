@@ -12,6 +12,9 @@ Usage
 
 * Configure the storage by adding a setting like ``longterm_scheduler_backend =
   'redis://localhost:6739/1'`` to your celery configuration.
+  (The storage also respects the built-in celery configuration settings
+  ``redis_socket_timeout``, ``redis_socket_connect_timeout`` and
+  ``redis_max_connections``.)
 * Configure your celery app to use a customized task class
   ``MYCELERY = celery.Celery(task_cls=celery_longterm_scheduler.Task)``
 * Set up a cronjob to run ``celery longterm_scheduler`` (e.g. every 5 minutes)
@@ -56,8 +59,8 @@ Redis schema
 celery_longterm_scheduler assumes that it talks to a dedicated redis database.
 It creates an entry per scheduled job using ``SET jobid job-configuration``
 (job-configuration is serialized with JSON) and uses a single sorted set named
-``schedule`` that contains the jobids scored by the unix timestamp (UTC) when
-they are due.
+``scheduled_task_id_by_time`` that contains the jobids scored by the unix
+timestamp (UTC) when they are due.
 
 
 Run tests
@@ -66,5 +69,9 @@ Run tests
 Using `tox`_ and `py.test`_. Maybe install ``tox`` (e.g. via ``pip install tox``)
 and then simply run ``tox``.
 
+For the integration tests you need to have the redis binary installed (tests
+start `their own server`_).
+
 .. _`tox`: http://tox.readthedocs.io/
 .. _`py.test`: http://pytest.org/
+.. _`their own server`: https://pypi.python.org/pypi/testing.redis

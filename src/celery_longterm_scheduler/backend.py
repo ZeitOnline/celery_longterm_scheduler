@@ -1,12 +1,14 @@
+import celery.backends.redis
 import collections
 import json
 import pendulum
 import pickle
+import redis
 
 
 class MemoryBackend(object):
 
-    def __init__(self, unused_url):
+    def __init__(self, unused_url, unused_app):
         self.by_id = {}
         self.by_time = collections.defaultdict(list)
 
@@ -41,6 +43,63 @@ class MemoryBackend(object):
                 yield (id, self.get(id))
 
 
+class RedisBackend(object):
+
+    redis = redis
+    # This is persisted in redis, only change when also having a migration plan
+    BY_TIME_KEY = 'scheduled_task_id_by_time'
+
+    def __init__(self, url, app):
+        self.url = url
+        self.app = app
+        # Taken from celery.backends.redis.RedisBackend.__init__()
+        max_connections = app.conf.get('redis_max_connections')
+        socket_timeout = app.conf.get('redis_socket_timeout')
+        socket_connect_timeout = app.conf.get('redis_socket_connect_timeout')
+        self.connparams = {
+            'max_connections': max_connections,
+            'socket_timeout': socket_timeout and float(socket_timeout),
+            'socket_connect_timeout':
+                socket_connect_timeout and float(socket_connect_timeout),
+        }
+        # Sneaky "inherit this one method only" transplant
+        self._params_from_url = celery.backends.redis.RedisBackend.\
+            _params_from_url.__get__(self)
+        self.connparams = self._params_from_url(url, self.connparams)
+        # We probably don't need a parameterizeable ConnectionPool, like
+        # celery.backends.redis.RedisBackend._create_client() does.
+        self.client = self.redis.StrictRedis(
+            connection_pool=self.redis.ConnectionPool(**self.connparams))
+
+    def set(self, timestamp, task_id, args, kw):
+        if timestamp.tzinfo is None:
+            raise ValueError('Timezone required, got %s', timestamp)
+        timestamp = serialize_timestamp(timestamp)
+        self.client.set(task_id, serialize([args, kw]))
+        self.client.zadd(self.BY_TIME_KEY, timestamp, task_id)
+
+    def get(self, task_id):
+        task = self.client.get(task_id)
+        if task is None:
+            raise KeyError(task_id)
+        args, kw = deserialize(task)
+        if isinstance(kw.get('args'), list):
+            kw['args'] = tuple(kw['args'])
+        return (tuple(args), kw)
+
+    def delete(self, task_id):
+        removed = 0
+        removed += self.client.delete(task_id)
+        removed += self.client.zrem(self.BY_TIME_KEY, task_id)
+        if removed != 2:
+            raise KeyError(task_id)
+
+    def get_older_than(self, timestamp):
+        timestamp = serialize_timestamp(timestamp)
+        for id in self.client.zrangebyscore(self.BY_TIME_KEY, 0, timestamp):
+            yield (id, self.get(id))
+
+
 def serialize_timestamp(timestamp):
     """Converts a datetime into seconds since the epoch."""
     return int(pendulum.instance(timestamp).timestamp())
@@ -49,15 +108,16 @@ def serialize_timestamp(timestamp):
 # Could be made extensible via entrypoints, like in celery.app.backends.
 BACKENDS = {
     'memory': MemoryBackend,
+    'redis': RedisBackend,
 }
 
 
-def by_url(url):
+def by_url(url, app):
     if '://' not in url:
         raise ValueError(
             'longterm_scheduler_backend must be an URL, got %r' % url)
     scheme = url.split('://')[0]
-    return BACKENDS[scheme](url)
+    return BACKENDS[scheme](url, app)
 
 
 class PickleFallbackJSONEncoder(json.JSONEncoder):

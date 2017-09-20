@@ -21,6 +21,7 @@ setup(
     ],
     extras_require={'test': [
         'mock',
+        'testing.redis',
     ]},
     entry_points={
         'celery.commands': [
