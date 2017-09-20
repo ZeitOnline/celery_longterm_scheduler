@@ -6,7 +6,60 @@ import pickle
 import redis
 
 
-class MemoryBackend(object):
+class AbstractBackend(object):
+    """Interface for the scheduler storage backend. Also see test_backend.py
+    for the corresponding contract tests that every implementation must pass.
+
+    Clients should not instantiate a backend class themselves, but rather
+    use the ``by_url()`` mechanism.
+    """
+
+    def __init__(self, url, app):
+        """
+        :param url: string, a backend-specific configuration address
+        :param app: celery App instance (mainly so the backend can access the
+        configuration in ``app.conf``)
+        """
+        raise NotImplementedError()
+
+    def set(self, timestamp, task_id, args, kw):
+        """Stores ``args`` and ``kw`` under ``task_id`` and ``timestamp``.
+        args and kw are serialized using JSON.
+
+        :param timestamp: timezone-aware datetime
+        :param task_id: string
+        :param args: tuple, positional arguments for the task
+        :param kw: dict, keyword arguments for the task
+        """
+        raise NotImplementedError()
+
+    def get(self, task_id):
+        """Retrieves a task entry stored by ``set()``
+
+        :param task_id: string
+        :returns: tuple (args, kw) -- args tuple, kw dict
+        """
+        raise NotImplementedError()
+
+    def delete(self, task_id):
+        """Removes a task entry stored by ``set()``.
+
+        :raises: KeyError if ``task_id`` was not found
+        """
+        raise NotImplementedError()
+
+    def get_older_than(self, timestamp):
+        """Retrieves task entries scheduled for times older or equal than
+        ``timestamp``.
+
+        :param timestamp: timezone-aware datetime
+        :return: iterable of tuple (task_id, (args, kw))
+        """
+        raise NotImplementedError()
+
+
+class MemoryBackend(AbstractBackend):
+    """In-memory backend implementation, for tests."""
 
     def __init__(self, unused_url, unused_app):
         self.by_id = {}
@@ -43,7 +96,8 @@ class MemoryBackend(object):
                 yield (id, self.get(id))
 
 
-class RedisBackend(object):
+class RedisBackend(AbstractBackend):
+    """Default backend implementation: redis"""
 
     redis = redis
     # This is persisted in redis, only change when also having a migration plan
@@ -100,11 +154,6 @@ class RedisBackend(object):
             yield (id, self.get(id))
 
 
-def serialize_timestamp(timestamp):
-    """Converts a datetime into seconds since the epoch."""
-    return int(pendulum.instance(timestamp).timestamp())
-
-
 # Could be made extensible via entrypoints, like in celery.app.backends.
 BACKENDS = {
     'memory': MemoryBackend,
@@ -121,6 +170,12 @@ def by_url(url, app):
 
 
 class PickleFallbackJSONEncoder(json.JSONEncoder):
+    """Serializes non-native JSON types using pickle.
+
+    We need this mostly because Task.apply_async() needs to store itself (the
+    Task instance), since send_task() needs it e.g. for routing information.
+    So we *hope* that nobody puts anything non-pickleable onto their tasks.
+    """
 
     PICKLE_MARKER = '__python_pickle__'
 
@@ -145,3 +200,8 @@ def serialize(obj):
 def deserialize(string):
     return json.loads(
         string, object_hook=PickleFallbackJSONEncoder.decode_dict)
+
+
+def serialize_timestamp(timestamp):
+    """Converts a datetime into seconds since the epoch."""
+    return int(pendulum.instance(timestamp).timestamp())

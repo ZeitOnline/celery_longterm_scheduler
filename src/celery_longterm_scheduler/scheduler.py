@@ -8,11 +8,21 @@ log = logging.getLogger(__name__)
 
 
 class Scheduler(object):
+    """Main scheduler functionality:
+
+    :store: schedule tasks for later
+    :revoke: revoke scheduled tasks
+    :execute_pending: execute scheduled tasks due by a given timestamp
+
+    Clients should use ``get_scheduler(app)`` with their celery app instance
+    to get hold of the corresponding Scheduler instance.
+    """
 
     CONF_KEY = '__longterm_scheduler_backend'
 
     def __init__(self, app):
         self.app = app
+        # Singleton behaviour
         if self.CONF_KEY not in app.conf:
             app.conf[self.CONF_KEY] = backend.by_url(
                 app.conf['longterm_scheduler_backend'], app)
@@ -23,9 +33,23 @@ class Scheduler(object):
         return cls(app)
 
     def store(self, timestamp, task_id, args, kw):
+        """Schedules the task (represented by the ``args`` and ``kw`` of the
+        postponed send_task() call) under ``task_id`` and ``timestamp``.
+
+        :param timestamp: timezone-aware datetime
+        :param task_id: string, the task id, can be used in revoke()
+        :param args: tuple, positional arguments for the task
+        :param kw: dict, keyword arguments for the task
+        """
         self.backend.set(timestamp, task_id, args, kw)
 
     def execute_pending(self, timestamp):
+        """Looks up scheduled tasks that are due on or before ``timestamp``,
+        creates normal celery tasks for them, and removes them from the
+        scheduler storage.
+
+        :param timestamp: timezone-aware datetime
+        """
         log.info('Start executing tasks older than %s', timestamp)
         for id, task in self.backend.get_older_than(timestamp):
             self._execute_task(id, task[0], task[1])
@@ -39,6 +63,10 @@ class Scheduler(object):
         self.revoke(task_id)
 
     def revoke(self, task_id):
+        """Removes the task scheduled by ``store(task_id)`` from scheduler
+        storage.
+
+        :returns: True if ``task_id`` was found and removed, False otherwise"""
         try:
             self.backend.delete(task_id)
             log.info('Revoked %s', task_id)
@@ -51,6 +79,10 @@ get_scheduler = Scheduler.from_app
 
 
 class Command(celery.bin.base.Command):
+    """The subcommand ``celery longterm_scheduler`` executes scheduled tasks
+    that are due on or before a given time (default: now), by creating normal
+    celery tasks for them.
+    """
 
     DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
