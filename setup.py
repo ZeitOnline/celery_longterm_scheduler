@@ -23,6 +23,7 @@ setup(
     ],
     extras_require={'test': [
         'mock',
+        'pytest',
         'testing.redis',
     ]},
     entry_points={
