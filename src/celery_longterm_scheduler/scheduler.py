@@ -1,6 +1,9 @@
 from celery_longterm_scheduler import backend
 import celery.bin.base
+import contextlib
+import fcntl
 import logging
+import os
 import pendulum
 
 
@@ -89,14 +92,43 @@ class Command(celery.bin.base.Command):
     def add_arguments(self, parser):
         parser.add_argument(
             '--timestamp',
-            help='Execute tasks older/equal to TIMESTAMP, default: now',
-        )
+            help='Execute tasks older/equal to TIMESTAMP, default: now')
+        parser.add_argument(
+            '--lockfile',
+            help='Path to lockfile, to prevent multiple simultaneous runs')
 
-    def run(self, timestamp=None, **kw):
+    def run(self, timestamp=None, lockfile=None, **kw):
         if timestamp is None:
             timestamp = 'now'
         # The `tz` parameter applies only if no timezone information is
         # present in the string -- which is precisely what we want here;
         # tz=None means use the locale's timezone.
         timestamp = pendulum.parse(timestamp, tz=None)
-        get_scheduler(self.app).execute_pending(timestamp)
+        if lockfile:
+            with locked(lockfile):
+                get_scheduler(self.app).execute_pending(timestamp)
+        else:
+            get_scheduler(self.app).execute_pending(timestamp)
+
+
+@contextlib.contextmanager
+def locked(filename):
+    """Context manager that acquires a file-based lock or raises RuntimError if
+    already locked.
+    """
+    lockfile = open(filename, 'a+')
+    try:
+        fcntl.lockf(lockfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except IOError:
+        raise RuntimeError('Another process is already running')
+    # Publishing the process id is handy for debugging.
+    lockfile.seek(0)
+    lockfile.truncate()
+    lockfile.write('%s\n' % os.getpid())
+    lockfile.flush()
+    try:
+        yield
+    finally:
+        lockfile.seek(0)
+        lockfile.truncate()
+        lockfile.close()  # This implicitly unlocks.
