@@ -98,6 +98,8 @@ class Command(celery.bin.base.Command):
             help='Path to lockfile, to prevent multiple simultaneous runs')
 
     def run(self, timestamp=None, lockfile=None, **kw):
+        self.app.log.setup(
+            logging.WARNING if kw.get('quiet') else logging.INFO)
         if timestamp is None:
             timestamp = 'now'
         # The `tz` parameter applies only if no timezone information is
