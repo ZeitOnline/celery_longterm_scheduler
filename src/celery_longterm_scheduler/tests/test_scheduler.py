@@ -15,6 +15,20 @@ def record(arg):
     record_calls.append(arg)
 
 
+def test_execute_pending_does_not_run_tasks_scheduled_in_the_future(
+        celery_worker):
+    record_calls[:] == []
+    due = FUTURE_DATE
+    record.apply_async(('not_yet',), eta=due)
+    assert not record_calls
+    scheduler = celery_longterm_scheduler.get_scheduler(CELERY)
+    # Try to execute task, scheduled in the future
+    scheduler.execute_pending(pendulum.now())
+    # XXX I don't think there is any "job completed" signal we could wait for.
+    time.sleep(1)
+    assert not record_calls
+
+
 def test_execute_pending_runs_scheduled_tasks(celery_worker):
     record_calls[:] == []
     due = PAST_DATE
