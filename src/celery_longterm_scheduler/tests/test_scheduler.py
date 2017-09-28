@@ -5,7 +5,8 @@ import pendulum
 import time
 
 
-ANYTIME = pendulum.create(2017, 1, 20)
+PAST_DATE = pendulum.create(2017, 1, 20)
+FUTURE_DATE = pendulum.create(3000, 1, 20)
 record_calls = []
 
 
@@ -16,11 +17,12 @@ def record(arg):
 
 def test_execute_pending_runs_scheduled_tasks(celery_worker):
     record_calls[:] == []
-    due = ANYTIME
+    due = PAST_DATE
     record.apply_async(('foo',), eta=due)
     assert not record_calls
     scheduler = celery_longterm_scheduler.get_scheduler(CELERY)
-    scheduler.execute_pending(due)
+    # Try to execute task, scheduled in the past
+    scheduler.execute_pending(pendulum.now())
     # XXX I don't think there is any "job completed" signal we could wait for.
     time.sleep(1)
     assert record_calls == ['foo']
@@ -32,7 +34,7 @@ def echo(arg):
 
 
 def test_execute_pending_deletes_from_storage():
-    due = ANYTIME
+    due = PAST_DATE
     echo.apply_async(('foo',), eta=due)
 
     scheduler = celery_longterm_scheduler.get_scheduler(CELERY)
@@ -46,7 +48,7 @@ def test_execute_pending_deletes_from_storage():
 
 
 def test_revoke_deletes_from_storage():
-    due = ANYTIME
+    due = PAST_DATE
     id = echo.apply_async(('foo',), eta=due).id
     scheduler = celery_longterm_scheduler.get_scheduler(CELERY)
     pending = list(scheduler.backend.get_older_than(due))
