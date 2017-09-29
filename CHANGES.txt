@@ -1,6 +1,12 @@
 celery_longterm_scheduler changes
 =================================
 
+1.1.0 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
 1.0.0 (2017-09-29)
 ------------------
 
