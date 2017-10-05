@@ -6,7 +6,7 @@ setup(
     version='1.1.0.dev0',
     author='Zeit Online',
     author_email='zon-backend@zeit.de',
-    url='http://www.zeit.de/',
+    url='https://github.com/zeitonline/celery_longterm_scheduler',
     description="Schedules celery tasks to run in the potentially far future",
     long_description='\n\n'.join(
         open(x).read() for x in ['README.rst', 'CHANGES.txt']),
