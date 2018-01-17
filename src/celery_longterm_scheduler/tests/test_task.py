@@ -53,3 +53,18 @@ def test_should_store_all_arguments_needed_for_send_task(celery_worker):
         # Special edge case, see Task._schedule() for an explanation
         normal_call[1]['result_cls'] = None
         assert scheduled_call == normal_call
+
+
+def test_should_bypass_if_no_eta_given():
+    with mock.patch(
+            'celery_longterm_scheduler.task.Task._schedule') as schedule:
+        result = echo.apply_async(('foo',))
+        assert schedule.call_count == 0
+        result.get()  # Be careful about test isolation
+
+        result = echo.apply_async(('foo',), eta=None)
+        assert schedule.call_count == 0
+        result.get()  # Be careful about test isolation
+
+        echo.apply_async(('foo',), eta=pendulum.now())
+        assert schedule.call_count == 1

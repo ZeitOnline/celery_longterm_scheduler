@@ -16,7 +16,7 @@ class Task(celery.Task):
 
     def apply_async(self, args=None, kwargs=None, task_id=None, producer=None,
                     link=None, link_error=None, shadow=None, **options):
-        if 'eta' in options:
+        if options.get('eta') is not None:
             timestamp = options.pop('eta')
 
             # copy&paste from celery.app.task.Task.apply_async()

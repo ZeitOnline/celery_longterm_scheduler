@@ -4,7 +4,7 @@ celery_longterm_scheduler changes
 1.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Don't try to schedule on ``apply_async(eta=None)`` calls
 
 
 1.0.0 (2017-09-29)
