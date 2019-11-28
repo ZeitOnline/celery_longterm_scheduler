@@ -4,7 +4,7 @@ celery_longterm_scheduler changes
 1.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Make Python-3 compatible.
 
 
 1.0.1 (2018-01-17)

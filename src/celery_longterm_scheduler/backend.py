@@ -1,9 +1,17 @@
+import base64
 import celery.backends.redis
 import collections
 import json
 import pendulum
 import pickle
 import redis
+import sys
+
+
+if sys.version_info < (3,):
+    text_type = unicode
+else:
+    text_type = str
 
 
 class AbstractBackend(object):
@@ -151,7 +159,9 @@ class RedisBackend(AbstractBackend):
     def get_older_than(self, timestamp):
         timestamp = serialize_timestamp(timestamp)
         for id in self.client.zrangebyscore(self.BY_TIME_KEY, 0, timestamp):
-            yield (id, self.get(id))
+            # Typically celery uses uuid, so ascii would suffice, but who knows
+            # what kind of ids random applications use in the wild.
+            yield (id.decode('utf-8'), self.get(id))
 
 
 # Could be made extensible via entrypoints, like in celery.app.backends.
@@ -181,14 +191,19 @@ class PickleFallbackJSONEncoder(json.JSONEncoder):
 
     def default(self, o):
         raw = pickle.dumps(o)
+        if sys.version_info >= (3,):
+            # The py2 pickle protocol is ascii compatible, but py3 is binary.
+            raw = base64.b64encode(raw).decode('ascii')
         return self.PICKLE_MARKER + raw
 
     @classmethod
     def decode_dict(cls, o):
         for key, value in o.items():
-            if isinstance(value, basestring) and value.startswith(
+            if isinstance(value, text_type) and value.startswith(
                     cls.PICKLE_MARKER):
                 raw = value.replace(cls.PICKLE_MARKER, '', 1)
+                if sys.version_info >= (3,):
+                    raw = base64.b64decode(raw)
                 o[key] = pickle.loads(raw)
         return o
 
