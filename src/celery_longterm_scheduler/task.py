@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import celery
 import celery.utils
 import celery_longterm_scheduler
@@ -20,13 +21,18 @@ class Task(celery.Task):
             timestamp = options.pop('eta')
 
             # copy&paste from celery.app.task.Task.apply_async()
-            if self.__self__ is not None:
-                args = args if isinstance(args, tuple) else tuple(args or ())
-                args = (self.__self__,) + args
+            if self.__v2_compat__:
+                shadow = shadow or self.shadow_name(
+                    self(), args, kwargs, options)
+            else:
                 shadow = shadow or self.shadow_name(args, kwargs, options)
 
             preopts = self._get_exec_options()
             options = dict(preopts, **options) if options else preopts
+
+            options.setdefault('ignore_result', self.ignore_result)
+            if self.priority:
+                options.setdefault('priority', self.priority)
             # end copy&paste
 
             return self._schedule(

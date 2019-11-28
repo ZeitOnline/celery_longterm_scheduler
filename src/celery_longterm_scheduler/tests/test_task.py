@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from celery_longterm_scheduler import get_scheduler
 from celery_longterm_scheduler.conftest import CELERY
 import mock

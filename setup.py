@@ -16,7 +16,7 @@ setup(
     zip_safe=False,
     license='BSD',
     install_requires=[
-        'celery',
+        'celery>=4.3.0',
         'pendulum',
         'redis',
         'setuptools',
