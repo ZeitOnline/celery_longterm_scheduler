@@ -4,7 +4,7 @@ celery_longterm_scheduler changes
 1.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Update to current redis client library version 3.x
 
 
 1.1.0 (2019-11-28)

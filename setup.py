@@ -18,7 +18,7 @@ setup(
     install_requires=[
         'celery>=4.3.0',
         'pendulum',
-        'redis',
+        'redis>=3.0',
         'setuptools',
     ],
     extras_require={'test': [

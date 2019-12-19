@@ -138,7 +138,7 @@ class RedisBackend(AbstractBackend):
             raise ValueError('Timezone required, got %s', timestamp)
         timestamp = serialize_timestamp(timestamp)
         self.client.set(task_id, serialize([args, kw]))
-        self.client.zadd(self.BY_TIME_KEY, timestamp, task_id)
+        self.client.zadd(self.BY_TIME_KEY, mapping={task_id: timestamp})
 
     def get(self, task_id):
         task = self.client.get(task_id)
