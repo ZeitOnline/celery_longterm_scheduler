@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='celery_longterm_scheduler',
-    version='1.1.2',
+    version='1.2.0.dev0',
     author='Zeit Online',
     author_email='zon-backend@zeit.de',
     url='https://github.com/zeitonline/celery_longterm_scheduler',
