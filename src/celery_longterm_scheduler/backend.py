@@ -203,7 +203,12 @@ class PickleFallbackJSONEncoder(json.JSONEncoder):
                     cls.PICKLE_MARKER):
                 raw = value.replace(cls.PICKLE_MARKER, '', 1)
                 if sys.version_info >= (3,):
-                    raw = base64.b64decode(raw)
+                    import binascii
+                    try:
+                        raw = base64.b64decode(raw)
+                    except binascii.Error:
+                        # We hopefully have a py2 pickle.
+                        raw = raw.encode('ascii')
                 o[key] = pickle.loads(raw)
         return o
 

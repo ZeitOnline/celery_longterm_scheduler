@@ -2,6 +2,8 @@
 from datetime import datetime
 import celery
 import celery_longterm_scheduler.backend
+import celery_longterm_scheduler.conftest
+import json
 import pendulum
 import pytest
 
@@ -84,3 +86,16 @@ def test_get_older_than_returns_timestamps_smaller_or_equal(backend):
     assert items[0][1] == ((1,), {'1': 1})
     assert items[1][0] == '2'
     assert items[1][1] == ((2,), {'2': 2})
+
+
+def test_py3_deserializes_py2_pickle():
+    from celery_longterm_scheduler.backend import PickleFallbackJSONEncoder
+    marker = PickleFallbackJSONEncoder.PICKLE_MARKER
+    py2_pickle = ("ccelery.app.registry\n_unpickle_task_v2\np0\n"
+                  "(S'celery.ping'\np1\nS'celery_longterm_scheduler.conftest'"
+                  "\np2\ntp3\nRp4\n.")
+    loaded = celery_longterm_scheduler.backend.deserialize(
+        json.dumps({'task_type': marker + py2_pickle}))['task_type']
+    ping = celery_longterm_scheduler.conftest.celery_ping.__maybe_evaluate__()
+    # Sigh, this proxy business prevents doing a simple object identity check.
+    assert repr(type(loaded)) == repr(type(ping))
