@@ -1,7 +1,7 @@
 celery_longterm_scheduler changes
 =================================
 
-1.2.0 (unreleased)
+1.1.2 (2020-05-27)
 ------------------
 
 - Add bw-compat so py3 can read py2-serialized tasks
