@@ -8,7 +8,7 @@ import pendulum
 import pytest
 
 
-ANYTIME = pendulum.create(2017, 1, 20)
+ANYTIME = pendulum.datetime(2017, 1, 20)
 
 
 @pytest.fixture(params=['memory://', 'redis://'])
@@ -73,14 +73,10 @@ def test_delete_nonexistend_task_id_raises_keyerror(backend):
 
 
 def test_get_older_than_returns_timestamps_smaller_or_equal(backend):
-    backend.set(
-        pendulum.create(2017, 1, 1, 9), '1', (1,), {'1': 1})
-    backend.set(
-        pendulum.create(2017, 1, 1, 10), '2', (2,), {'2': 2})
-    backend.set(
-        pendulum.create(2017, 1, 1, 11), '3', (3,), {'3': 3})
-    items = list(
-        backend.get_older_than(pendulum.create(2017, 1, 1, 10)))
+    backend.set(pendulum.datetime(2017, 1, 1, 9), '1', (1,), {'1': 1})
+    backend.set(pendulum.datetime(2017, 1, 1, 10), '2', (2,), {'2': 2})
+    backend.set(pendulum.datetime(2017, 1, 1, 11), '3', (3,), {'3': 3})
+    items = list(backend.get_older_than(pendulum.datetime(2017, 1, 1, 10)))
     assert len(items) == 2
     assert items[0][0] == '1'
     assert items[0][1] == ((1,), {'1': 1})

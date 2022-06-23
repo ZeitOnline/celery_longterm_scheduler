@@ -1,4 +1,5 @@
 from celery_longterm_scheduler import backend
+import click
 import celery.bin.base
 import contextlib
 import fcntl
@@ -81,36 +82,31 @@ class Scheduler:
 get_scheduler = Scheduler.from_app
 
 
-class Command(celery.bin.base.Command):
+@click.command(name='longterm_scheduler', cls=celery.bin.base.CeleryCommand)
+@click.option(
+    '--timestamp', default='now',
+    help='Execute tasks older/equal to TIMESTAMP, default: now')
+@click.option(
+    '--lockfile', default='',
+    help='Path to lockfile, to prevent multiple simultaneous runs')
+@click.pass_context
+def main(ctx, timestamp, lockfile):
     """The subcommand ``celery longterm_scheduler`` executes scheduled tasks
     that are due on or before a given time (default: now), by creating normal
     celery tasks for them.
     """
-
-    DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
-
-    def add_arguments(self, parser):
-        parser.add_argument(
-            '--timestamp',
-            help='Execute tasks older/equal to TIMESTAMP, default: now')
-        parser.add_argument(
-            '--lockfile',
-            help='Path to lockfile, to prevent multiple simultaneous runs')
-
-    def run(self, timestamp=None, lockfile=None, **kw):
-        self.app.log.setup(
-            logging.WARNING if kw.get('quiet') else logging.INFO)
-        if timestamp is None:
-            timestamp = 'now'
-        # The `tz` parameter applies only if no timezone information is
-        # present in the string -- which is precisely what we want here;
-        # tz=None means use the locale's timezone.
-        timestamp = pendulum.parse(timestamp, tz=None)
-        if lockfile:
-            with locked(lockfile):
-                get_scheduler(self.app).execute_pending(timestamp)
-        else:
-            get_scheduler(self.app).execute_pending(timestamp)
+    app = ctx.obj.app
+    app.log.setup(
+        logging.WARNING if ctx.parent.params.get('quiet') else logging.INFO)
+    # The `tz` parameter applies only if no timezone information is
+    # present in the string -- which is precisely what we want here;
+    # tz=None means use the locale's timezone.
+    timestamp = pendulum.parse(timestamp, tz=None)
+    if lockfile:
+        with locked(lockfile):
+            get_scheduler(app).execute_pending(timestamp)
+    else:
+        get_scheduler(app).execute_pending(timestamp)
 
 
 @contextlib.contextmanager

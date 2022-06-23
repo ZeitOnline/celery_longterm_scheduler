@@ -4,7 +4,7 @@ celery_longterm_scheduler changes
 1.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Update to celery-5.x
 
 
 1.1.2 (2020-05-27)

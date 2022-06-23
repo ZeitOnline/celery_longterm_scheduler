@@ -16,7 +16,8 @@ setup(
     zip_safe=False,
     license='BSD',
     install_requires=[
-        'celery>=4.3.0',
+        'celery>=5.0.0.dev0',
+        'click',
         'pendulum',
         'redis>=3.0',
         'setuptools',
@@ -27,7 +28,7 @@ setup(
     ]},
     entry_points={
         'celery.commands': [
-            'longterm_scheduler = celery_longterm_scheduler.scheduler:Command',
+            'longterm_scheduler = celery_longterm_scheduler.scheduler:main',
         ]
     },
     classifiers=[

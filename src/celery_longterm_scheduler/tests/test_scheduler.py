@@ -5,8 +5,8 @@ import pendulum
 import time
 
 
-PAST_DATE = pendulum.create(2017, 1, 20)
-FUTURE_DATE = pendulum.create(3000, 1, 20)
+PAST_DATE = pendulum.datetime(2017, 1, 20)
+FUTURE_DATE = pendulum.datetime(3000, 1, 20)
 record_calls = []
 
 

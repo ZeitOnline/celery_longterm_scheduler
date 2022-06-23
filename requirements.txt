@@ -1,35 +1,41 @@
 # dependencies
-pendulum == 1.2.5
-python-dateutil == 2.6.1
-pytz == 2017.2
-pytzdata == 2017.2.2
+pendulum==2.1.2
+python-dateutil==2.8.2
+pytzdata==2020.1
+setuptools == 62.3.2
+six==1.16.0
 
 # celery
-amqp == 2.4.0
-anyjson == 0.3.3
-billiard == 3.6.0
-celery == 4.3.0
-kombu == 4.4.0
-redis == 3.3.11
-vine == 1.3.0
-SQLAlchemy == 1.3.11
-tblib == 1.5.0
-
-# setuptools
-appdirs == 1.4.3
-packaging == 16.8
-pyparsing == 2.2.0
-setuptools == 34.3.2
-six == 1.10.0
+amqp==5.1.1
+billiard==3.6.4.0
+celery==5.2.7
+click==8.1.3
+click-didyoumean==0.3.0
+click-plugins==1.1.1
+click-repl==0.2.0
+kombu==5.2.4
+prompt-toolkit==3.0.29
+pytz==2022.1
+vine==5.0.0
+wcwidth==0.2.5
 
 # Testing
-execnet == 1.1
-mock == 1.0.1
-pep8 == 1.6.2
-py == 1.10.0
-pytest == 3.0.2
-pytest-cache == 1.0
-pytest-catchlog == 1.2.2
-pytest-pep8 == 1.0.6
-testing.common.database == 2.0.1
-testing.redis == 1.1.1
+Deprecated==1.2.13
+async-timeout==4.0.2
+attrs==21.4.0
+flake8==4.0.1
+iniconfig==1.1.1
+mccabe==0.6.1
+packaging==21.3
+pluggy==1.0.0
+py==1.11.0
+pycodestyle==2.8.0
+pyflakes==2.4.0
+pyparsing==3.0.9
+pytest-flake8==1.1.1
+pytest==7.1.2
+redis==4.3.3
+testing.common.database==2.0.3
+testing.redis==1.1.1
+tomli==2.0.1
+wrapt==1.14.1
