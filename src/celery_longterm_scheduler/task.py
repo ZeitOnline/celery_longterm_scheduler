@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 import celery
 import celery.utils
 import celery_longterm_scheduler

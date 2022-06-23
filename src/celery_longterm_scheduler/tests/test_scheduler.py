@@ -1,6 +1,6 @@
 from celery_longterm_scheduler.conftest import CELERY
+from unittest import mock
 import celery_longterm_scheduler
-import mock
 import pendulum
 import time
 
