@@ -1,20 +1,14 @@
 import base64
+import binascii
 import celery.backends.redis
 import collections
 import json
 import pendulum
 import pickle
 import redis
-import sys
 
 
-if sys.version_info < (3,):
-    text_type = unicode
-else:
-    text_type = str
-
-
-class AbstractBackend(object):
+class AbstractBackend:
     """Interface for the scheduler storage backend. Also see test_backend.py
     for the corresponding contract tests that every implementation must pass.
 
@@ -191,24 +185,19 @@ class PickleFallbackJSONEncoder(json.JSONEncoder):
 
     def default(self, o):
         raw = pickle.dumps(o)
-        if sys.version_info >= (3,):
-            # The py2 pickle protocol is ascii compatible, but py3 is binary.
-            raw = base64.b64encode(raw).decode('ascii')
+        raw = base64.b64encode(raw).decode('ascii')
         return self.PICKLE_MARKER + raw
 
     @classmethod
     def decode_dict(cls, o):
         for key, value in o.items():
-            if isinstance(value, text_type) and value.startswith(
-                    cls.PICKLE_MARKER):
+            if isinstance(value, str) and value.startswith(cls.PICKLE_MARKER):
                 raw = value.replace(cls.PICKLE_MARKER, '', 1)
-                if sys.version_info >= (3,):
-                    import binascii
-                    try:
-                        raw = base64.b64decode(raw)
-                    except binascii.Error:
-                        # We hopefully have a py2 pickle.
-                        raw = raw.encode('ascii')
+                try:
+                    raw = base64.b64decode(raw)
+                except binascii.Error:
+                    # We hopefully have a py2 pickle.
+                    raw = raw.encode('ascii')
                 o[key] = pickle.loads(raw)
         return o
 

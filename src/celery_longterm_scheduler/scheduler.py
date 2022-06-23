@@ -10,7 +10,7 @@ import pendulum
 log = logging.getLogger(__name__)
 
 
-class Scheduler(object):
+class Scheduler:
     """Main scheduler functionality:
 
     :store: schedule tasks for later
