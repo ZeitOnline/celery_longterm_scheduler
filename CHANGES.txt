@@ -4,7 +4,7 @@ celery_longterm_scheduler changes
 1.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Also support ``rediss://`` URLs
 
 
 1.2.0 (2022-06-23)

@@ -162,6 +162,7 @@ class RedisBackend(AbstractBackend):
 BACKENDS = {
     'memory': MemoryBackend,
     'redis': RedisBackend,
+    'rediss': RedisBackend,
 }
 
 
