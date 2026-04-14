@@ -33,7 +33,7 @@ pycodestyle==2.8.0
 pyflakes==2.4.0
 pyparsing==3.0.9
 pytest-flake8==1.1.1
-pytest==7.1.2
+pytest==9.0.3
 redis==4.5.4
 testing.common.database==2.0.3
 testing.redis==1.1.1
